@@ -141,6 +141,8 @@ def schedule_bears(bears,
     :param executor:
         The executor to which the bear tasks are scheduled.
     """
+    bears_without_tasks_to_cleanup = []
+
     for bear in bears:
         if dependency_tracker.get_dependencies(bear):  # pragma: no cover
             logging.warning(
@@ -163,12 +165,18 @@ def schedule_bears(bears,
             logging.debug('Scheduled {!r} (tasks: {})'.format(bear,
                                                               len(tasks)))
 
+            # Cleanup bears without tasks after all bears had the chance to
+            # schedule their tasks. Not doing so might stop the run too early,
+            # as the cleanup is also responsible for stopping the event-loop
+            # when no more tasks do exist.
             if not tasks:
-                # We need to recheck our runtime if something is left to
-                # process, as when no tasks were offloaded the event-loop could
-                # hang up otherwise.
-                cleanup_bear(bear, result_callback, dependency_tracker,
-                             running_tasks, event_loop, executor)
+                bears_without_tasks_to_cleanup.append(bear)
+
+    for bear in bears_without_tasks_to_cleanup:
+        # We need to recheck our runtime if something is left to process, as
+        # when no tasks were offloaded the event-loop could hang up otherwise.
+        cleanup_bear(bear, result_callback, dependency_tracker,
+                     running_tasks, event_loop, executor)
 
 
 def finish_task(bear,
