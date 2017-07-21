@@ -113,6 +113,7 @@ def cleanup_bear(bear,
                     repr(dependant) + ' depends on ' + repr(dependency)
                     for dependency, dependant in dependency_tracker)))
 
+        executor.shutdown()
         event_loop.stop()
 
 
@@ -357,5 +358,4 @@ def run(bears, result_callback):
     try:
         event_loop.run_forever()
     finally:
-        executor.shutdown()
         event_loop.close()
