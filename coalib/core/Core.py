@@ -357,4 +357,5 @@ def run(bears, result_callback):
     try:
         event_loop.run_forever()
     finally:
+        executor.shutdown()
         event_loop.close()
