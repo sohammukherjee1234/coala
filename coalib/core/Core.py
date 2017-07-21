@@ -113,7 +113,6 @@ def cleanup_bear(bear,
                     repr(dependant) + ' depends on ' + repr(dependency)
                     for dependency, dependant in dependency_tracker)))
 
-        executor.shutdown()
         event_loop.stop()
 
 
@@ -151,7 +150,7 @@ def schedule_bears(bears,
         else:
             tasks = {
                 event_loop.run_in_executor(
-                    executor, bear.execute_task, bear_args, bear_kwargs)
+                    None, bear.execute_task, bear_args, bear_kwargs)
                 for bear_args, bear_kwargs in bear.generate_tasks()}
 
             running_tasks[bear] = tasks
@@ -348,6 +347,7 @@ def run(bears, result_callback):
     # Set up event loop and executor.
     event_loop = asyncio.SelectorEventLoop()
     executor = concurrent.futures.ProcessPoolExecutor()
+    event_loop.set_default_executor(executor)
 
     # Initialize dependency tracking.
     dependency_tracker, bears_to_schedule = initialize_dependencies(bears)
